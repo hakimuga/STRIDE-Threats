@@ -1,0 +1,55 @@
+mdp
+
+
+const double p;
+const int TAMPER = 0;
+const int PRODUCED = 1;
+const int EMPTY = -1;
+const int NUM;
+
+module sender
+
+  m: [-1..1] init -1;
+  s: [0..2] init 0;
+  n: [-1..NUM] init -1;
+
+[        ]  s=0 & (m<0) & (n<NUM)-> (s'=1) & (m'=PRODUCED) &(n'=n+1);
+[transmit]  s=1        -> (s'=2) ;
+[        ]  s=2        -> (s'=0) & (m'=EMPTY) ;
+
+endmodule
+
+
+
+module connector
+
+  c: [0..5] init 0;
+  mc: [-1..1] init -1;
+
+[transmit]  c=0 & (mc<0)-> (c'=1)& (mc'=m) ;
+
+[ ]  c=1 -> (1-p):(c'=2) + p:(c'=3) ;
+
+[ ]  c=3 -> (c'=2)& (mc'=TAMPER) ;
+
+[receive]  c=2 -> (c'=0) & (mc'=EMPTY) ;
+
+endmodule
+
+module receiver
+
+  r : [0..2]    init  0;
+  mr: [-1..1] init -1;
+
+[receive]  r=0 & (mr<0)-> (r'=1) & (mr'=mc) ;
+[store]    r=1         -> (r'=0) & (mr'=EMPTY) ;
+
+endmodule
+
+
+rewards "num_mess"
+
+[store] mr=PRODUCED: 1;
+
+endrewards
+
